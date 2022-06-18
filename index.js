@@ -1,0 +1,150 @@
+const app = require("express")();
+const express = require("express");
+const falsisdb = require("falsisdb");
+const bcrypt = require("bcrypt");
+console.log(bcrypt);
+const { JsonDatabase } = require("wio.db");
+
+const db = new JsonDatabase({
+  databasePath: "./database.json"
+});
+const checkEmail = (email) => {
+  return db.get("users").filter((x) => x.email == email).length > 0
+    ? false
+    : true;
+};
+
+const checkUsername = (username) => {
+  return db.get("users").filter((x) => x.username == username).length > 0
+    ? false
+    : true;
+};
+const checkPassword = (password) => {
+  return db.get("users").filter((x) => x.password == password).length > 0
+    ? false
+    : true;
+};
+const getKey = () => {
+  const letters = "ABCDEFGHIJKLMNOPRSTUVYZabcdefghijklmnoprstuvyz1234567890";
+  let res = "";
+  for (var i = 0; i < 15; i++) {
+    res += letters[Math.floor(Math.random() * letters.length)];
+  }
+  return res;
+};
+
+app.get("/script", (req, res) => {
+  res.sendFile(__dirname + "/styles/script.js");
+});
+app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: false }));
+app.set("views", __dirname + "/views");
+
+app.get("/admin", (req, res) => {
+  res.render("admin", { db: db });
+});
+
+app.post("/admin", (req, res) => {
+  const key = Object.entries(req.body)[0][0];
+  const data = db.get("messages").filter((x) => x.key != key);
+  db.set("messages", data);
+  res.render("admin", { db: db });
+});
+
+app.get("/admin-css", (req, res) => {
+  res.sendFile(__dirname + "/styles/admin-style.css");
+});
+app.get("/", (req, res) => {
+  res.render("index");
+  /*db.push("users", {
+    email:"berat@gmail.com",
+    password:"1234"
+  })*/
+  //console.log(checkEmail("berat@gmail.com"))
+});
+
+app.post("/", (req, res) => {
+  db.push("messages", { message: req.body.letterMessage, key: getKey() });
+  res.render("index");
+});
+/*"messages":[{"message":"deneme"}, {"message":"deniyom"}, {"message":"Xjwksjwkdmeksmskwlxmmwkkskskw\n\n\n\n\n\n\n\nxjeoxskzmsksm\n\n\n\n\nsnwosmwksmsmwkss\n"},{"message":"xd"},{"message":"xd"},{"message":"xd"},{"message":"xd"}]*/
+
+/*this.DatabaseError("_").*/
+app.get("/login", (req, res) => {
+  res.render("login.ejs", { pass: true });
+});
+app.get("/login-css", (req, res) => {
+  res.sendFile(__dirname + "/styles/login-style.css");
+});
+
+app.get("/signup-css", (req, res) => {
+  res.sendFile(__dirname + "/styles/signup-style.css");
+});
+
+app.get("/sign-up", (req, res) => {
+  res.render("sign-up", { pass: true });
+});
+
+app.post("/sign-up", (req, res) => {
+  if (!checkEmail(req.body.email) || !checkPassword(req.body.password)) {
+    res.render("sign-up", { pass: false });
+  } else if (!checkUsername(req.body.username)) {
+    res.render("sign-up", { pass: "Username error" });
+  } else {
+    db.push("users", {
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password
+    });
+    res.redirect("/");
+  }
+});
+app.get("/css", (req, res) => {
+  res.sendFile(__dirname + "/styles/style.css");
+});
+
+app.post("/login", (req, res) => {
+  if (!checkEmail(req.body.email) || !checkPassword(req.body.password)) {
+    res.redirect("/");
+  } else {
+    res.render("login", { pass: false });
+  }
+});
+
+app.get("/deneme1", (req, res) => {
+  res.render("deneme1");
+});
+
+app.get("/deneme2", (req, res) => {
+  res.render("deneme2");
+});
+
+app.get("/deneme3", (req, res) => {
+  res.render("deneme3");
+});
+
+app.listen(3001, () => {
+  console.log("Server listening!");
+});
+
+/*fun.fact*/
+
+/*
+const endpoint = `/admin/delete/${del.dataset.doc}`
+  console.log(endpoint)
+  fetch(endpoint, {
+    method:"DELETE"
+  })
+  .then((response) => response.json())
+  .then(data => window.location.href = data.link)
+  .catch(err => console.log(err))
+
+*/
+
+/*del.addEventListener("click", (e) => {
+  console.log(del)
+})*/
+
+/*
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" charset="utf-8"></script>
+*/
