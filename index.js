@@ -2,7 +2,8 @@ const app = require("express")();
 const express = require("express");
 const falsisdb = require("falsisdb");
 const bcrypt = require("bcrypt");
-console.log(bcrypt);
+const jwt = require("jsonwebtoken");
+
 const { JsonDatabase } = require("wio.db");
 
 const db = new JsonDatabase({
@@ -32,6 +33,12 @@ const getKey = () => {
   }
   return res;
 };
+app.use(cookieParser())
+app.use(session({
+  secret:"Blablbaalkaak",
+  resave:false,
+  saveUninitialized:true
+  }))
 
 app.get("/script", (req, res) => {
   res.sendFile(__dirname + "/styles/script.js");
@@ -111,17 +118,66 @@ app.post("/login", (req, res) => {
   }
 });
 
-app.get("/deneme1", (req, res) => {
-  res.render("deneme1");
-});
+app.get("/kayit", (req,res) => {
+  res.render("deneme")
+  //req.headers.a = "deneme"
+  console.log(req.headers)
+})
 
-app.get("/deneme2", (req, res) => {
-  res.render("deneme2");
-});
+app.post("/kayit", (req,res) => {
+  const hash = require("crypto").createHash("md5").update(req.body.password).digest("hex")
+  const token = jwt.sign({
+    email:req.body.email,
+    password:req.body.password,
+  }, secret,{expiresIn:10})
+  //res.cookie("token",token,{maxAge:5000})
+  //res.setHeader("Authorization:",String(` Bearer ${token}`),{maxAge:5,httpOnly:true})
+  console.log(token)
+  console.log(req.headers)
+  res.status(200).send({
+    message:"OK",
+    token:token
+  })
+  /*setInterval(() => {
+    console.log(req.headers)
+  },6000)*/
+})
 
-app.get("/deneme3", (req, res) => {
-  res.render("deneme3");
-});
+app.get("/log", (req,res) => {
+  res.render("log")
+})
+
+app.post("/log",(req,res) => {
+  /*JWT is send with request header! 
+        Format of it: Authorization : Bearer <token>
+        */
+  /*try {
+        
+        /*const token = req.headers.authorization.split(" ")[1];
+        const decodedToken = jwt.verify(token, secret);
+        req.userData = decodedToken;
+        console.log("başarılı: "+token+"\n\n"+decodedToken)
+        console.log(req.headers)
+        next();
+    }catch(error) {
+      console.log(error)
+        return res.status(401).send({
+            message: 'Auth failed'
+        });
+    }*/
+})
+
+app.get("/deneme1", (req,res) => {
+  res.render("deneme1")
+})
+
+app.get("/deneme2", (req,res) => {
+  res.render("deneme2")
+})
+
+app.get("/deneme3", (req,res) => {
+  res.render("deneme3")
+})
 
 app.listen(3001, () => {
   console.log("Server listening!");
